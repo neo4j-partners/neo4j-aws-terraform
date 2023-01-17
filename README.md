@@ -69,7 +69,7 @@ output "neo4j_browser_url" {
 
 ## Prerequisites
 
-In order to use this module, terraform needs to be properly installed and configured.  Whilst this is out of the scope of this README file, an example provider.tf file is shown below.  The [official terraform documentation](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli) explains how to get terraform up and running on a local machine.  Alternatively, [Terraform Cloud](https://developer.hashicorp.com/terraform/tutorials/cloud-get-started) is another option.
+In order to use this module, terraform needs to be properly installed and configured.  Whilst this is out of the scope of this README file, an example `provider.tf` file is shown below.  The [official terraform documentation](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli) explains how to get terraform up and running on a local machine.  Alternatively, [Terraform Cloud](https://developer.hashicorp.com/terraform/tutorials/cloud-get-started) is another option.
 
 ~~~
 //Configure the terraform backend (S3) and aws provider
