@@ -11,18 +11,20 @@ Note the 'source' parameter can be used to either point directly to this reposit
 ~~~
 #main.tf file for deploying neo4j-terraform
 module "neo4j-environment" {
-  //source             = "github.com/neo4j/neo4j-terraform/tree/main"
-  source = "../neo4j-terraform"
+  source         = "github.com/neo4j/neo4j-terraform/tree/main"
+  //source       = "../neo4j-terraform"
 
   //Required values (no defaults are provided)
   neo4j_password   = "pw_for_neo4j_user"
-  instance_type    = "t3.medium"
   public_key_value = "ssh-rsa AAAAB3NzaC1A.....b+oTz7tb0WF2aiOPp0="
   private_key_path = "~/.ssh/my-ssh-key"
 
   //The following Optional values can be removed or commented if defaults are satisfactory.
 
-  //Default is 3 . Valid values are 1, or 3 -> 10 (inclusive)
+  //Default is "t3.medium"
+  instance_type = "t3.medium"
+
+  //Default is 3. Valid values are 1, or 3 -> 10 (inclusive)
   node_count = 3
 
   //Default is "10.0.0.0/16"
@@ -42,7 +44,7 @@ module "neo4j-environment" {
   install_apoc = "true"
 
   //Default is "neo4j-tf-cloud"
-  env_prefix = "my-neo4j-environment
+  env_prefix = "my-neo4j-environment"
 
   //Default is "us-east-1"
   target_region = "us-east-1"
@@ -92,7 +94,6 @@ provider "aws" {
   profile = "product-na"
 }
 ~~~
-
 
 ## limitations
 
