@@ -7,14 +7,11 @@ The module can be used by creating a parent module, as follows:
 
 ~~~
 module "neo4j-environment" {
-  source = "../neo4j-tf-module"
-  //source           = "github.com/edrandall-dev/neo4j-tf-module"
+  source             = "github.com/neo4j/neo4j-terraform/tree/main"
   node_count         = "3"
-  env_name           = "First Test Neo4j Env"
   vpc_base_cidr      = "10.123.0.0/16"
-  env_prefix         = "neo4j-test-mod"
+  env_prefix         = "my-neo4j-tf-env"
   target_region      = "us-east-1"
-  availability_zones = ["a", "b", "c"]
 
   install_gds = "true"
   install_bloom = "true"
@@ -24,8 +21,8 @@ module "neo4j-environment" {
   install_apoc = "true"
 
   instance_type    = "t3.micro"
-  public_key_path  = "~/.ssh/aws-test.pub"
-  private_key_path = "~/.ssh/aws-test"
+  public_key_value = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCg6p4wT8NYooUHKlcQrta/D4XkPgbYi9tpejs.....="
+  private_key_path = "~/.ssh/my-ssh-key"
 }
 
 output "ssh_commands" {
@@ -33,7 +30,7 @@ output "ssh_commands" {
 }
 ~~~
 
-#Prerequisites
+# Prerequisites
 
 Both AWS and Terraform commands need to be installed and properly configured before deploying, an example provider.tf file is shown below:
 
