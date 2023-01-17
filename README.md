@@ -31,7 +31,7 @@ output "ssh_commands" {
 }
 ~~~
 
-# Prerequisites
+## Prerequisites
 
 Both AWS and Terraform commands need to be installed and properly configured before deploying, an example provider.tf file is shown below:
 
