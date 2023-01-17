@@ -13,7 +13,7 @@ The command [`ssh-keygen`](https://linux.die.net/man/1/ssh-keygen) can be used t
 ~~~
 #main.tf file for deploying neo4j-terraform
 module "neo4j-environment" {
-  source         = "github.com/neo4j/neo4j-terraform/tree/main"
+  source         = "github.com/neo4j/neo4j-aws-terraform/tree/main"
   //source       = "../neo4j-terraform"
 
   //Required values (no defaults are provided)
@@ -70,7 +70,6 @@ output "neo4j_browser_url" {
 ## Prerequisites
 
 In order to use this module, terraform needs to be properly installed and configured.  Whilst this is out of the scope of this README file, an example provider.tf file is shown below.  The [official terraform documentation](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli) explains how to get terraform up and running on a local machine.  Alternatively, [Terraform Cloud](https://developer.hashicorp.com/terraform/tutorials/cloud-get-started) is another option.
-
 
 ~~~
 //Configure the terraform backend (S3) and aws provider
