@@ -1,20 +1,6 @@
 resource "aws_iam_role" "neo4j_ec2_role" {
   name = "${var.env_prefix}-role"
-  //assume_role_policy = local.assume_role_policy
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Sid    = ""
-        Principal = {
-          Service = "ec2.amazonaws.com"
-        }
-      }
-    ]
-  })
+  assume_role_policy = local.assume_role_policy
 }
 
 resource "aws_iam_instance_profile" "neo4j_instance_profile" {
@@ -51,6 +37,7 @@ data "aws_iam_policy_document" "neo4j_nlb_tagging_policy_document" {
       "elasticloadbalancingv2:AddTags",
       "elasticloadbalancingv2:DescribeTags",
     ]
+
     resources = [
       aws_lb.neo4j_lb.arn
     ]

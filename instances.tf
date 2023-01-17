@@ -10,9 +10,6 @@ resource "aws_instance" "neo4j_instance" {
   iam_instance_profile = aws_iam_instance_profile.neo4j_instance_profile.name
   depends_on           = [aws_lb.neo4j_lb]
 
-  //only set to true when developing/debugging.  tf default = false
-  user_data_replace_on_change = false
-
   user_data = templatefile(
     "${path.module}/neo4j.tftpl",
     {
@@ -35,7 +32,10 @@ resource "aws_instance" "neo4j_instance" {
     "Terraform" = true
   }
 
-  # don't force-recreate instance if only user data changes
+  // only set to true when developing/debugging.  tf default = false
+  user_data_replace_on_change = false
+
+  // don't force-recreate instance if only user data changes
   lifecycle {
     ignore_changes = [user_data]
   }

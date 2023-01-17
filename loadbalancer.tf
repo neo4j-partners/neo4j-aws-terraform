@@ -12,9 +12,6 @@ resource "aws_lb" "neo4j_lb" {
 
   lifecycle {
     ignore_changes = [
-      # Ignore changes to tags, e.g. because a management agent
-      # updates these based on some ruleset managed elsewhere.
-      tags,
     ]
   }
 }

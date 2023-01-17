@@ -8,26 +8,51 @@ The terraform code hosted here can be easily used by creating a parent module on
 
 ~~~
 module "neo4j-environment" {
-  source             = "github.com/neo4j/neo4j-terraform/tree/main"
-  node_count         = "3"
-  vpc_base_cidr      = "10.123.0.0/16"
-  env_prefix         = "my-neo4j-tf-env"
-  target_region      = "us-east-1"
+  //source             = "github.com/neo4j/neo4j-terraform/tree/main"
+  source = "../neo4j-terraform"
 
-  install_gds = "true"
-  install_bloom = "true"
-  gds_key= "this-is-the-gds-key"
-  bloom_key = "this-is-the-bloom-key"
-  neo4j_password = "TestPW123!"
-  install_apoc = "true"
-
-  instance_type    = "t3.micro"
+  //Required values (no defaults are provided)
+  neo4j_password   = "pw_for_neo4j_user"
+  instance_type    = "t3.medium"
   public_key_value = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCg6p4wT8NYooUHKlcQrta/D4XkPgbYi9tpejs.....="
   private_key_path = "~/.ssh/my-ssh-key"
+
+  //The following Optional values can be removed or commented if defaults are satisfactory.
+
+  //Default is 3 . Valid values are 1, or 3 -> 10 (inclusive)
+  node_count = 3
+
+  //Default is "10.0.0.0/16"
+  vpc_base_cidr = "10.0.0.0/16"
+
+  //Default is false
+  install_gds = "true"
+
+  //Default is false
+  install_bloom = "true"
+
+  //Default is true
+  install_apoc = "true"
+
+  //Default is "neo4j-tf-cloud"
+  env_prefix = "neo4j-tf-cloud"
+
+  //Default is "us-east-1"
+  target_region = "us-east-1"
+
+  //Default is "None"
+  gds_key = "gds-licence-goes-here"
+
+  //Default is "None"
+  bloom_key = "bloom-licence-goes-here"
 }
 
 output "ssh_commands" {
   value = module.neo4j-environment.ssh_commands
+}
+
+output "neo4j_browser_url" {
+  value = module.neo4j-environment.neo4j_browser_url
 }
 ~~~
 
@@ -36,7 +61,7 @@ output "ssh_commands" {
 Both AWS and Terraform commands need to be installed and properly configured before deploying, an example provider.tf file is shown below:
 
 ~~~
-//Configure the terraform backed and aws provider
+//Configure the terraform backend (S3) and aws provider
 terraform {
   backend "s3" {
     bucket  = "<s3-bucketname goes here>"

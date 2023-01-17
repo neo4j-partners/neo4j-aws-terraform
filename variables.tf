@@ -1,3 +1,19 @@
+locals {
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
 variable "vpc_base_cidr" {
   description = "The base of the address range to be used by the VPC and corresponding Subnets"
   type        = string
@@ -18,11 +34,11 @@ variable "neo4j_version" {
   type        = string
 
   validation {
-    //condition     = contains(["4.4", "5"], var.neo4j_version)
-    //error_message = "Valid values are either 4.4 (for Neo4j version 4.4) or 5 (for Neo4j version 5)."
     condition     = contains(["5"], var.neo4j_version)
     error_message = "The only currently supported value is 5 (for Neo4j version 5).  Development is ongoing for Neo4j v4.4 (LTS)"
   }
+
+  default = 5
 }
 
 variable "target_region" {
@@ -84,6 +100,12 @@ variable "install_bloom" {
   default     = false
 }
 
+variable "install_apoc" {
+  description = "Determine if the APOC library is required"
+  type        = bool
+  default     = true
+}
+
 variable "gds_key" {
   description = "License Key for Graph Data Science"
   type        = string
@@ -98,12 +120,6 @@ variable "bloom_key" {
 
 variable "neo4j_password" {
   description = "Password for the neo4j user"
-}
-
-variable "install_apoc" {
-  description = "Determine if the APOC library is required"
-  type        = bool
-  default     = true
 }
 
 variable "neo4j-ami-list" {
@@ -142,22 +158,3 @@ variable "neo4j-ami-list" {
     }
   }
 }
-
-/*
-locals {
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Sid    = ""
-        Principal = {
-          Service = "ec2.amazonaws.com"
-        }
-      }
-    ]
-  })
-}
-*/
-

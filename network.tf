@@ -10,9 +10,7 @@ resource "aws_vpc" "neo4j_vpc" {
 }
 
 resource "aws_subnet" "neo4j_public_subnet" {
-  //We'll always have 3 subnets - Don't change this variable unless you're sure
   count = var.subnet_qty
-
   vpc_id                  = aws_vpc.neo4j_vpc.id
   cidr_block              = cidrsubnet(var.vpc_base_cidr, 8, count.index + 1)
   availability_zone       = join("", ["${var.target_region}", "${var.availability_zones[count.index]}"])
