@@ -4,7 +4,7 @@ A terraform module for the installation of an environment in EC2, running neo4j.
 
 ## usage
 The terraform code hosted here can be easily used by creating a parent module on your local machine, with the following contents:
-(More information about terraform modules can be found on !(this)[https://developer.hashicorp.com/terraform/language/modules] page)
+(More information about terraform modules can be found on ![this](https://developer.hashicorp.com/terraform/language/modules) page)
 
 ~~~
 module "neo4j-environment" {
