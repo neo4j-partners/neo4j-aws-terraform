@@ -14,7 +14,7 @@ module "neo4j-environment" {
   //Required values (no defaults are provided)
   neo4j_password   = "pw_for_neo4j_user"
   instance_type    = "t3.medium"
-  public_key_value = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCg6p4wT8NYooUHKlcQrta/D4XkPgbYi9tpejs.....="
+  public_key_value = "ssh-rsa AAAAB3NzaC1AAABgQCg....p3h/9rSNZ0NOWIxeZbx4Zn+I/7jhwppl1SSQJodolhkK2nRkWqibPGb9ub+oTz7tb0WF2aiOPp0="
   private_key_path = "~/.ssh/my-ssh-key"
 
   //The following Optional values can be removed or commented if defaults are satisfactory.
@@ -35,16 +35,16 @@ module "neo4j-environment" {
   install_apoc = "true"
 
   //Default is "neo4j-tf-cloud"
-  env_prefix = "neo4j-tf-cloud"
+  env_prefix = "my-neo4j-environment
 
   //Default is "us-east-1"
   target_region = "us-east-1"
 
   //Default is "None"
-  gds_key = "gds-licence-goes-here"
+  gds_key = "None"
 
   //Default is "None"
-  bloom_key = "bloom-licence-goes-here"
+  bloom_key = "None"
 }
 
 output "ssh_commands" {
