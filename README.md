@@ -1,12 +1,14 @@
-# neo4j-terraform
+# neo4j-aws-terraform
 
 This repository hosts a terraform module for the installation of an environment in AWS EC2, running neo4j.  
 
-## usage
+## Usage
 The terraform code hosted in this repository can be easily used by creating a parent module on your local machine, in a main.tf file as shown below.
 (More information about terraform modules can be found on [this](https://developer.hashicorp.com/terraform/language/modules) page)
 
-Note the 'source' parameter can be used to either point directly to this repository or a local copy of the code.
+Note the `source` parameter can be used to either point directly to this repository or a local copy of the code.
+
+The command [`ssh-keygen`](https://linux.die.net/man/1/ssh-keygen) can be used to generate a keypair.  The private key should not be shared, and its file location should be the value for `private_key_path`.  The contents of the public key should be given as the value for `public_key_path`
 
 ~~~
 #main.tf file for deploying neo4j-terraform
@@ -35,10 +37,10 @@ module "neo4j-environment" {
   neo4j_source_cidr = "0.0.0.0/0"
 
   //Default is false
-  install_gds = "true"
+  install_gds = "false"
 
   //Default is false
-  install_bloom = "true"
+  install_bloom = "false"
 
   //Default is true
   install_apoc = "true"
@@ -65,9 +67,9 @@ output "neo4j_browser_url" {
 }
 ~~~
 
-## prerequisites
+## Prerequisites
 
-In order to use this module, terraform needs to be properly installed and configured.  Whilst this is out of the scope of this README file,  an example provider.tf file is shown below.  The [official terraform documentation](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli) explains how to get terraform up and running on a local machine.  Alternatively, [Terraform Cloud](https://developer.hashicorp.com/terraform/tutorials/cloud-get-started) is another option.
+In order to use this module, terraform needs to be properly installed and configured.  Whilst this is out of the scope of this README file, an example provider.tf file is shown below.  The [official terraform documentation](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli) explains how to get terraform up and running on a local machine.  Alternatively, [Terraform Cloud](https://developer.hashicorp.com/terraform/tutorials/cloud-get-started) is another option.
 
 
 ~~~
@@ -95,7 +97,7 @@ provider "aws" {
 }
 ~~~
 
-## limitations
+## Limitations
 
 Currently, the following limitations apply:
  - Only Neo4j v5 is supported.  Support for 4.4 will follow.
