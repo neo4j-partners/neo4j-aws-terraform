@@ -1,12 +1,15 @@
 # neo4j-terraform
 
-A terraform module for the installation of an environment in EC2, running neo4j.
+This repository hosts a terraform module for the installation of an environment in AWS EC2, running neo4j.  
 
 ## usage
-The terraform code hosted here can be easily used by creating a parent module on your local machine, with the following contents:
+The terraform code hosted in this repository can be easily used by creating a parent module on your local machine, in a main.tf file as shown below.
 (More information about terraform modules can be found on [this](https://developer.hashicorp.com/terraform/language/modules) page)
 
+Note the 'source' parameter can be used to either point directly to this repository or a local copy of the code.
+
 ~~~
+#main.tf file for deploying neo4j-terraform
 module "neo4j-environment" {
   //source             = "github.com/neo4j/neo4j-terraform/tree/main"
   source = "../neo4j-terraform"
@@ -14,7 +17,7 @@ module "neo4j-environment" {
   //Required values (no defaults are provided)
   neo4j_password   = "pw_for_neo4j_user"
   instance_type    = "t3.medium"
-  public_key_value = "ssh-rsa AAAAB3NzaC1AAABgQCg....p3h/9rSNZ0NOWIxeZbx4Zn+I/7jhwppl1SSQJodolhkK2nRkWqibPGb9ub+oTz7tb0WF2aiOPp0="
+  public_key_value = "ssh-rsa AAAAB3NzaC1A.....b+oTz7tb0WF2aiOPp0="
   private_key_path = "~/.ssh/my-ssh-key"
 
   //The following Optional values can be removed or commented if defaults are satisfactory.
@@ -24,6 +27,10 @@ module "neo4j-environment" {
 
   //Default is "10.0.0.0/16"
   vpc_base_cidr = "10.0.0.0/16"
+
+  //Default is "0.0.0.0/0"
+  ssh_source_cidr   = "0.0.0.0/0"
+  neo4j_source_cidr = "0.0.0.0/0"
 
   //Default is false
   install_gds = "true"
@@ -56,9 +63,10 @@ output "neo4j_browser_url" {
 }
 ~~~
 
-## Prerequisites
+## prerequisites
 
-Both AWS and Terraform commands need to be installed and properly configured before deploying, an example provider.tf file is shown below:
+In order to use this module, terraform needs to be properly installed and configured.  Whilst this is out of the scope of this README file,  an example provider.tf file is shown below.  The [official terraform documentation](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli) explains how to get terraform up and running on a local machine.  Alternatively, [Terraform Cloud](https://developer.hashicorp.com/terraform/tutorials/cloud-get-started) is another option.
+
 
 ~~~
 //Configure the terraform backend (S3) and aws provider
@@ -84,3 +92,12 @@ provider "aws" {
   profile = "product-na"
 }
 ~~~
+
+
+## limitations
+
+Currently, the following limitations apply:
+ - Only Neo4j v5 is supported.  Support for 4.4 will follow.
+ - The addition of nodes to a neo4j cluster is currently not supported.  The desired number of nodes in a cluster must be selected prior to deployment, using the node_count variable
+ - SSL (https) has not been included in this initial release
+ - The environment uses a network load balancer in AWS.  This means the EC2 instances will also be directly accessible from whichever address ranges are configure in var.ssh_source_cidr
