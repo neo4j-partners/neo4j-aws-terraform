@@ -21,7 +21,7 @@ module "neo4j-environment" {
   public_key_value = "ssh-rsa AAAAB3NzaC1A.....b+oTz7tb0WF2aiOPp0="
   private_key_path = "~/.ssh/my-ssh-key"
 
-  //The following Optional values can be removed or commented if defaults are satisfactory.
+  //The following Optional values can be omitted if the defaults are satisfactory.
 
   //Default is "t3.medium"
   instance_type = "t3.medium"
