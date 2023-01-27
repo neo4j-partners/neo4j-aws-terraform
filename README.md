@@ -77,13 +77,13 @@ Users are reminded that the deployment of cloud resources will incur costs.
    - 10.0.1.0/24
    - 10.0.2.0/24
    - 10.0.3.0/24
-   - 1, or between 3 and 10 EC2 instances (Depending on whether a single instance, or an autonomous cluster is selected)
-   - 1 Network (Layer 4) Load Balancer
+ - 1, or between 3 and 10 EC2 instances (Depending on whether a single instance, or an autonomous cluster is selected)
+ - 1 Network (Layer 4) Load Balancer
 
-# Diagram: Single Neo4j Instance on AWS
+### Diagram: Single Neo4j Instance on AWS
 ![image](diagrams/aws-1-instance.png)
 
-# Diagram: Three Node Neo4j Cluster on AWS
+### Diagram: Three Node Neo4j Cluster on AWS
 ![image](diagrams/aws-3-instance-cluster.png)
 
 ## Prerequisites
@@ -116,7 +116,7 @@ provider "aws" {
 }
 ~~~
 
-### AWS Persmissions
+### AWS Permisions
 
 As part of this implementation, an IAM role is created for the EC2 instances which allows them to 'tag' the Network Load Balancer with the current version of neo4j.  This functionality has been put in place as part of future development plans to ensure that any new nodes which are added to the cluster install the same version of Neo4j as the existing instances.   Users will therefore need to ensure that their AWS account has sufficient permissions to be able to perform the following.
  - Create an IAM role
@@ -126,6 +126,16 @@ As part of this implementation, an IAM role is created for the EC2 instances whi
      elasticloadbalancing:DescribeTags
      elasticloadbalancingv2:AddTags
      elasticloadbalancingv2:DescribeTags
+
+
+The IAM role, policy and permissions are all created within the [iam.tf](iam.tf) file.
+
+The role is attached to the instance by the following entry within the [instances.tf](instances.tf) file:
+```  iam_instance_profile = aws_iam_instance_profile.neo4j_instance_profile.name ```
+
+Here is an example line from [neo4j.tftpl](neo4j.tftpl) showing the EC2 instance tagging the load balancer with the current version of neo4j:
+``` aws elbv2 add-tags --resource-arns $LB_ARN --tags Key=Neo4j_Built_Version,Value=$(/usr/share/neo4j/bin/neo4j --version) --region=$TARGET_REGION ```
+
 
 ## Limitations
 
