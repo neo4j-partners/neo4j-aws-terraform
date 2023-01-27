@@ -81,10 +81,10 @@ Users are reminded that the deployment of cloud resources will incur costs.
    - 1 Network (Layer 4) Load Balancer
 
 # Diagram: Single Neo4j Instance on AWS
-![image](aws-1-instance.png)
+![image](diagrams/aws-1-instance.png)
 
 # Diagram: Three Node Neo4j Cluster on AWS
-![image](aws-3-instance-cluster.png)
+![image](diagrams/aws-3-instance-cluster.png)
 
 ## Prerequisites
 
