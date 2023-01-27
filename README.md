@@ -68,7 +68,7 @@ output "neo4j_browser_url" {
 ~~~
 
 ## Cloud Topology
-The following resources are created by the CFT, and users will need to ensure they have the correct permissions within AWS to provision them:
+Assuming that defaults were used, the following resources are created by the terraform module:
 
 Users are reminded that the deployment of cloud resources will incur costs.
 
