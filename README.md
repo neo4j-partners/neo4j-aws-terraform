@@ -98,8 +98,6 @@ terraform {
     bucket  = "<s3-bucketname goes here>"
     key     = "terraform.tfstate"
     region  = "us-east-1"
-    profile = "product-na"
-
   }
 
   required_providers {
@@ -112,7 +110,6 @@ terraform {
 //Specify which AWS region and profile should be used by default
 provider "aws" {
   region  = "us-east-1"
-  profile = "product-na"
 }
 ~~~
 
