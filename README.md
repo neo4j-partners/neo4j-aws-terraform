@@ -46,7 +46,7 @@ module "neo4j-environment" {
   install_apoc = "true"
 
   //Default is "neo4j-tf-cloud"
-  env_prefix = "my-neo4j-environment"
+  env_prefix = "my-neo4j-env"
 
   //Default is "us-east-1"
   target_region = "us-east-1"
