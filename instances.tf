@@ -24,11 +24,12 @@ resource "aws_instance" "neo4j_instance" {
       lb_arn         = aws_lb.neo4j_lb.arn
       neo4j_version  = var.neo4j_version
       target_region  = var.target_region
+      env_prefix     = var.env_prefix
     }
   )
 
   tags = {
-    "Name"      = "${var.env_prefix}instance"
+    "Name"      = "${var.env_prefix}-instance"
     "Terraform" = true
   }
 

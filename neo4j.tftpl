@@ -18,13 +18,14 @@ NEO4J_VERSION=${neo4j_version}
 TARGET_REGION=${target_region}
 LB_ARN=${lb_arn}
 THIS_INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+ENV_PREFIX=${env_prefix}
 
 function aws_get_private_ips {
   aws ec2 describe-instances\
         --output=text\
         --region=$TARGET_REGION\
         --filters Name=tag:Terraform,Values=true\
-        --filters Name=tag:Name,Values=neo4j-tf-cloudinstance*\
+        --filters Name=tag:Name,Values=$ENV_PREFIX-instance\
         --query "Reservations[].Instances[].PrivateIpAddress"
 }
 
