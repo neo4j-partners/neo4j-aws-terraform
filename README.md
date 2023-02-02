@@ -13,7 +13,7 @@ The command [`ssh-keygen`](https://linux.die.net/man/1/ssh-keygen) can be used t
 ~~~
 #main.tf file for deploying neo4j-terraform
 module "neo4j-environment" {
-  source         = "github.com/neo4j/neo4j-aws-terraform/tree/main"
+  source         = "github.com/neo4j/neo4j-aws-terraform"
   //source       = "../neo4j-terraform"
 
   //Required values (no defaults are provided)
