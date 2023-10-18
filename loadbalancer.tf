@@ -11,8 +11,7 @@ resource "aws_lb" "neo4j_lb" {
   }
 
   lifecycle {
-    ignore_changes = [
-    ]
+    ignore_changes = [tags, tags_all]
   }
 }
 

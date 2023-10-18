@@ -22,6 +22,10 @@ resource "aws_iam_policy" "neo4j_nlb_tagging_policy" {
   name        = "neo4j_nlb_tagging_policy"
   description = "Policy for tagging Network Load Balancer"
   policy      = data.aws_iam_policy_document.neo4j_nlb_tagging_policy_document.json
+
+  lifecycle {
+    ignore_changes = [policy]
+  }
 }
 
 data "aws_iam_policy_document" "neo4j_nlb_tagging_policy_document" {
