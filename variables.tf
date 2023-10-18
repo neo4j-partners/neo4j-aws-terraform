@@ -95,12 +95,6 @@ variable "install_bloom" {
   default     = false
 }
 
-variable "install_apoc" {
-  description = "Determine if the APOC library is required"
-  type        = bool
-  default     = true
-}
-
 variable "gds_key" {
   description = "License Key for Graph Data Science"
   type        = string

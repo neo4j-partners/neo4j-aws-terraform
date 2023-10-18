@@ -120,6 +120,29 @@ else
   sed -i s/#dbms.cluster.discovery.endpoints=localhost:5000,localhost:5001,localhost:5002/dbms.cluster.discovery.endpoints=$CORE_MEMBERS/g /etc/neo4j/neo4j.conf
 fi
 
+## Install UUID and setup indexes and constraints
+echo " - [ Configuring APOC and indexes/constraints ] - "
+wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/5.12.0/apoc-5.12.0-extended.jar -P /var/lib/neo4j/plugins
+chown neo4j:neo4j apoc-5.12.0-extended.jar
+chmod 755 apoc-5.12.0-extended.jar
+touch /etc/neo4j/apoc.conf
+echo "apoc.uuid.enabled=true" >> /etc/neo4j/apoc.conf
+echo "apoc.initializer.neo4j.0=CREATE CONSTRAINT asset_identifier IF NOT EXISTS FOR (n:Asset) REQUIRE n.identifier IS UNIQUE;" >> /etc/neo4j/apoc.conf
+echo "apoc.initializer.neo4j.1=CREATE CONSTRAINT policy_entity_identifier IF NOT EXISTS FOR (n:PolicyEntity) REQUIRE n.identifier IS UNIQUE;" >> /etc/neo4j/apoc.conf
+echo "apoc.initializer.neo4j.2=CREATE CONSTRAINT result_entity_identifier IF NOT EXISTS FOR (n:ResultEntity) REQUIRE n.identifier IS UNIQUE;" >> /etc/neo4j/apoc.conf
+echo "apoc.initializer.neo4j.3=CREATE CONSTRAINT attribute_identifier IF NOT EXISTS FOR (a:Attribute) REQUIRE a.identifier IS UNIQUE;" >> /etc/neo4j/apoc.conf
+echo "apoc.initializer.neo4j.4=CALL apoc.uuid.install("Asset", {uuidProperty: "identifier", addToExistingNodes: false});" >> /etc/neo4j/apoc.conf
+echo "apoc.initializer.neo4j.5=CALL apoc.uuid.install("PolicyEntity", {uuidProperty: "identifier", addToExistingNodes: false});" >> /etc/neo4j/apoc.conf
+echo "apoc.initializer.neo4j.6=CALL apoc.uuid.install("ResultEntity", {uuidProperty: "identifier", addToExistingNodes: false});" >> /etc/neo4j/apoc.conf
+echo "apoc.initializer.neo4j.7=CALL apoc.uuid.install("Attribute", {uuidProperty: "identifier", addToExistingNodes: false});" >> /etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.8=CREATE FULLTEXT INDEX search_index IF NOT EXISTS FOR (n:Asset|PolicyEntity) ON EACH [n.idFromProvider, n.name, n.slug, n.internalName] OPTIONS {indexConfig: {`fulltext.eventually_consistent`: true}};' >> /etc/neo4j/apoc.conf
+echo "apoc.initializer.neo4j.9=CREATE INDEX iamPermission_name IF NOT EXISTS FOR (n:IAMPermission) ON (n.name);" >> /etc/neo4j/apoc.conf
+echo "apoc.initializer.neo4j.10=CREATE INDEX asset_idFromProvider IF NOT EXISTS FOR (n:Asset) ON (n.idFromProvider);" >> /etc/neo4j/apoc.conf
+echo "apoc.initializer.neo4j.11=CREATE INDEX control_slug FOR (c:Control) ON c.slug;" >> /etc/neo4j/apoc.conf
+echo "apoc.initializer.neo4j.12=CREATE INDEX procedure_slug FOR (pr:Procedure) ON pr.slug;" >> /etc/neo4j/apoc.conf
+echo "apoc.initializer.neo4j.13=CREATE INDEX awsAsset_package FOR (n:AWSAsset) ON (n.awsPackage);" >> /etc/neo4j/apoc.conf
+echo "apoc.initializer.neo4j.14=CREATE INDEX awsAsset_assetType FOR (n:AWSAsset) ON (n.awsAssetType);" >> /etc/neo4j/apoc.conf
+
 ## 5 - Install Graph Data Science
 if [[ "$INSTALL_GDS" == true && $NODE_COUNT == 1 ]]; then
   echo " - [  Installing Graph Data Science] - "

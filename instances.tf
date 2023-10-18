@@ -4,11 +4,10 @@ resource "aws_instance" "neo4j_instance" {
 
   instance_type = var.instance_type
 
-  subnet_id                   = element(var.instance_subnets, count.index % 3)
-  vpc_security_group_ids      = ["${aws_security_group.neo4j_sg.id}"]
-  iam_instance_profile        = aws_iam_instance_profile.neo4j_instance_profile.name
-  depends_on                  = [aws_lb.neo4j_lb]
-  associate_public_ip_address = true
+  subnet_id              = element(var.instance_subnets, count.index % 3)
+  vpc_security_group_ids = ["${aws_security_group.neo4j_sg.id}"]
+  iam_instance_profile   = aws_iam_instance_profile.neo4j_instance_profile.name
+  depends_on             = [aws_lb.neo4j_lb]
 
   user_data = templatefile(
     "${path.module}/neo4j.tftpl",
@@ -18,7 +17,6 @@ resource "aws_instance" "neo4j_instance" {
       gds_key        = var.gds_key
       bloom_key      = var.bloom_key
       neo4j_password = var.neo4j_password
-      install_apoc   = var.install_apoc
       node_count     = var.node_count
       lb_fqdn        = aws_lb.neo4j_lb.dns_name
       lb_arn         = aws_lb.neo4j_lb.arn
