@@ -1,16 +1,8 @@
 resource "aws_security_group" "neo4j_sg" {
-  name   = "${var.env_prefix}_sg"
-  vpc_id = aws_vpc.neo4j_vpc.id
+  name   = "${var.env_prefix}-sg"
+  vpc_id = var.vpc_id
 
-  // no restrictions on traffic originating from inside the VPC
-  ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["${var.vpc_base_cidr}"]
-  }
-
-  // no restrictions on ssh traffic from var.ssh_source_cidr
+  // allow SSH traffic from var.ssh_source_cidr
   ingress {
     from_port   = 22
     to_port     = 22
@@ -18,7 +10,7 @@ resource "aws_security_group" "neo4j_sg" {
     cidr_blocks = ["${var.ssh_source_cidr}"]
   }
 
-  // no restrictions on neo4j browser traffic from var.neo4j_source_cide
+  // allow neo4j browser traffic from var.neo4j_source_cide
   ingress {
     from_port   = 7474
     to_port     = 7474
@@ -26,7 +18,7 @@ resource "aws_security_group" "neo4j_sg" {
     cidr_blocks = ["${var.neo4j_source_cidr}"]
   }
 
-  // no restrictions on neo4j bolt traffic from var.neo4j_source_cide
+  // allow neo4j bolt traffic from var.neo4j_source_cide
   ingress {
     from_port   = 7687
     to_port     = 7687
@@ -45,5 +37,9 @@ resource "aws_security_group" "neo4j_sg" {
   tags = {
     "Name"      = "${var.env_prefix}-sg"
     "Terraform" = true
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }

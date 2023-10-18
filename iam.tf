@@ -1,5 +1,5 @@
 resource "aws_iam_role" "neo4j_ec2_role" {
-  name = "${var.env_prefix}-role"
+  name               = "${var.env_prefix}-role"
   assume_role_policy = local.assume_role_policy
 }
 
