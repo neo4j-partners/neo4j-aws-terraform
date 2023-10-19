@@ -107,10 +107,6 @@ variable "bloom_key" {
   default     = "None"
 }
 
-variable "neo4j_password" {
-  description = "Password for the neo4j user"
-}
-
 variable "ami" {
   type        = string
   description = "The AMI ID for the Neo4j instance(s)"
