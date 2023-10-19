@@ -143,10 +143,10 @@ echo 'apoc.initializer.neo4j.7=CALL apoc.uuid.install("Attribute", {uuidProperty
 echo 'apoc.initializer.neo4j.8=CREATE FULLTEXT INDEX search_index IF NOT EXISTS FOR (n:Asset|PolicyEntity) ON EACH [n.idFromProvider, n.name, n.slug, n.internalName] OPTIONS {indexConfig: {`fulltext.eventually_consistent`: true}}' >> /etc/neo4j/apoc.conf
 echo 'apoc.initializer.neo4j.9=CREATE INDEX iamPermission_name IF NOT EXISTS FOR (n:IAMPermission) ON (n.name)' >> /etc/neo4j/apoc.conf
 echo 'apoc.initializer.neo4j.10=CREATE INDEX asset_idFromProvider IF NOT EXISTS FOR (n:Asset) ON (n.idFromProvider)' >> /etc/neo4j/apoc.conf
-echo 'apoc.initializer.neo4j.11=CREATE INDEX control_slug FOR (c:Control) ON c.slug' >> /etc/neo4j/apoc.conf
-echo 'apoc.initializer.neo4j.12=CREATE INDEX procedure_slug FOR (pr:Procedure) ON pr.slug' >> /etc/neo4j/apoc.conf
-echo 'apoc.initializer.neo4j.13=CREATE INDEX awsAsset_package FOR (n:AWSAsset) ON (n.awsPackage)' >> /etc/neo4j/apoc.conf
-echo 'apoc.initializer.neo4j.14=CREATE INDEX awsAsset_assetType FOR (n:AWSAsset) ON (n.awsAssetType)' >> /etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.11=CREATE INDEX control_slug IF NOT EXISTS FOR (c:Control) ON c.slug' >> /etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.12=CREATE INDEX procedure_slug IF NOT EXISTS FOR (pr:Procedure) ON pr.slug' >> /etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.13=CREATE INDEX awsAsset_package IF NOT EXISTS FOR (n:AWSAsset) ON (n.awsPackage)' >> /etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.14=CREATE INDEX awsAsset_assetType IF NOT EXISTS FOR (n:AWSAsset) ON (n.awsAssetType)' >> /etc/neo4j/apoc.conf
 
 ## 5 - Install Graph Data Science
 if [[ "$INSTALL_GDS" == true && $NODE_COUNT == 1 ]]; then
