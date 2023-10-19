@@ -8,5 +8,5 @@ resource "aws_secretsmanager_secret" "this" {
 
 resource "aws_secretsmanager_secret_version" "this" {
   secret_id     = aws_secretsmanager_secret.this.id
-  secret_string = data.aws_secretsmanager_random_password.this
+  secret_string = data.aws_secretsmanager_random_password.this.random_password
 }
