@@ -1,7 +1,7 @@
 module "aws-secrets" {
   source = "github.com/cyscale/terraform-aws-secrets"
 
-  name = var.password_secret_name
+  secret_name = var.password_secret_name
 }
 
 
