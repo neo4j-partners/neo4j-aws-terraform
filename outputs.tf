@@ -7,7 +7,7 @@ output "lb_dns_name" {
 }
 
 output "neo4j_password" {
-  value     = aws_secretsmanager_secret_version.this.secret_string
+  value     = module.aws-secrets.secret_string
   sensitive = true
 }
 
