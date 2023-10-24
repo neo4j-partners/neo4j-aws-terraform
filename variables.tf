@@ -69,9 +69,9 @@ variable "node_count" {
 
   validation {
     condition = (
-      var.node_count > 0 &&
-      var.node_count != 2 &&
-      var.node_count < 11
+    var.node_count > 0 &&
+    var.node_count != 2 &&
+    var.node_count < 11
     )
     error_message = "node_count can be 1 or between 3 and 10"
   }
@@ -110,4 +110,10 @@ variable "bloom_key" {
 variable "ami" {
   type        = string
   description = "The AMI ID for the Neo4j instance(s)"
+}
+
+variable "password_secret_name" {
+  type        = string
+  description = "The name of the AWS secret that will contain the password"
+  default     = "neo4j-password"
 }

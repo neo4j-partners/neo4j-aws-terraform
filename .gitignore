@@ -1,0 +1,4 @@
+# IDE specific
+.vscode/
+.idea/
+.devcontainer/
