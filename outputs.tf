@@ -14,3 +14,7 @@ output "neo4j_password" {
 output "target_region" {
   value = var.target_region
 }
+
+output "secret_arn" {
+  value = module.aws-secrets.secret_arn
+}
