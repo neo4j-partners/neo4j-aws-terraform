@@ -33,6 +33,12 @@ resource "aws_instance" "neo4j_instance" {
     }
   )
 
+  root_block_device {
+    volume_size = var.volume_size
+    encrypted   = true
+    volume_type = "gp3"
+  }
+
   tags = {
     "Name"      = "${var.env_prefix}-instance"
     "Terraform" = true
