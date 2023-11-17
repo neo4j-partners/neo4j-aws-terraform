@@ -1,3 +1,43 @@
+locals {
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }
+    ]
+  })
+  role_policy_arns = [
+    "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+    "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy",
+    "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess",
+    aws_iam_policy.cw_retention.arn,
+  ]
+}
+
+resource "aws_iam_policy" "cw_retention" {
+  name        = "CloudWatchAgentPutLogsRetention"
+  description = "Allow the CW agent to change retention policies"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "logs:PutRetentionPolicy",
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      },
+    ]
+  })
+}
+
 resource "aws_iam_role" "neo4j_ec2_role" {
   name               = "${var.env_prefix}-role"
   assume_role_policy = local.assume_role_policy
@@ -8,42 +48,9 @@ resource "aws_iam_instance_profile" "neo4j_instance_profile" {
   role = aws_iam_role.neo4j_ec2_role.name
 }
 
-resource "aws_iam_role_policy_attachment" "ec2_ro_policy_attachment" {
+resource "aws_iam_role_policy_attachment" "this" {
+  count = length(local.role_policy_arns)
+
   role       = aws_iam_role.neo4j_ec2_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
-}
-
-resource "aws_iam_role_policy_attachment" "neo4j_nlb_tagging_policy" {
-  role       = aws_iam_role.neo4j_ec2_role.name
-  policy_arn = aws_iam_policy.neo4j_nlb_tagging_policy.arn
-}
-
-resource "aws_iam_policy" "neo4j_nlb_tagging_policy" {
-  name        = "neo4j_nlb_tagging_policy"
-  description = "Policy for tagging Network Load Balancer"
-  policy      = data.aws_iam_policy_document.neo4j_nlb_tagging_policy_document.json
-
-  lifecycle {
-    ignore_changes = [policy]
-  }
-}
-
-data "aws_iam_policy_document" "neo4j_nlb_tagging_policy_document" {
-  depends_on = [
-    aws_lb.neo4j_lb
-  ]
-
-  statement {
-    effect = "Allow"
-    actions = [
-      "elasticloadbalancing:AddTags",
-      "elasticloadbalancing:DescribeTags",
-      "elasticloadbalancingv2:AddTags",
-      "elasticloadbalancingv2:DescribeTags",
-    ]
-
-    resources = [
-      aws_lb.neo4j_lb.arn
-    ]
-  }
+  policy_arn = element(local.role_policy_arns, count.index)
 }

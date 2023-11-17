@@ -1,0 +1,5 @@
+scrape_configs:
+  - job_name: 'neo4j-prometheus'
+
+    static_configs:
+      - targets: ['localhost:2004']

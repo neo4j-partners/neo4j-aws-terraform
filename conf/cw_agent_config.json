@@ -1,0 +1,60 @@
+{
+  "agent": {
+    "metrics_collection_interval": 10
+  },
+  "metrics": {
+    "metrics_collected": {
+      "disk": {
+        "resources": ["/", "/tmp"],
+        "measurement": ["disk_used_percent"],
+        "ignore_file_system_types": ["sysfs", "devtmpfs"]
+      },
+      "mem": {
+        "measurement": ["mem_available_percent"]
+      }
+    },
+    "aggregation_dimensions": [["InstanceId", "InstanceType"], ["InstanceId"]]
+  },
+  "logs": {
+    "logs_collected": {
+      "files": {
+        "collect_list": [
+          {
+            "file_path": "/var/log/neo4j/neo4j.log",
+            "log_group_name": "/neo4j/neo4j.log",
+            "retention_in_days": 30
+          }
+        ]
+      }
+    },
+    "metrics_collected": {
+      "prometheus": {
+        "log_group_name": "/neo4j/prometheus",
+        "prometheus_config_path": "/opt/aws/amazon-cloudwatch-agent/etc/prometheus.yml",
+        "emf_processor": {
+          "metric_declaration_dedup": true,
+          "metric_namespace": "Neo4j",
+          "metric_unit": {
+            "neo4j.neo4j.count.node": "Count"
+          },
+          "metric_declaration": [
+            {
+              "source_labels": ["job"],
+              "label_matcher": "neo4j-prometheus",
+              "dimensions": [["node_count"]],
+              "metric_selectors": ["^neo4j_database_neo4j_neo4j_count_node$"]
+            },
+            {
+              "source_labels": ["job"],
+              "label_matcher": "neo4j-prometheus",
+              "dimensions": [["relationship_count"]],
+              "metric_selectors": [
+                "^neo4j_database_neo4j_neo4j_count_relationship$"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,132 @@
+#!/bin/bash -xe
+sleep 30
+
+exec > >(tee /var/log/user-data.log | logger -t user-data-extra -s 2>/dev/console) 2>&1
+
+# Configure Cloudwatch agent
+wget https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
+rpm -U ./amazon-cloudwatch-agent.rpm
+
+# Setup the prometheus scraping for neo4j
+aws ssm get-parameter --name ${ssm_prometheus} --output=text --query "Parameter.Value" >/opt/aws/amazon-cloudwatch-agent/etc/prometheus.yml
+
+# Use cloudwatch config from SSM
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+  -a fetch-config \
+  -m ec2 \
+  -c ssm:${ssm_cloudwatch_config} -s
+
+## 1 - Variable Setting and Test
+NEO4J_PASSWORD=${neo4j_password}
+NEO4J_VERSION=${neo4j_version}
+TARGET_REGION=${target_region}
+THIS_INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+ENV_PREFIX=${env_prefix}
+APOC_VERSION="5.13.0"
+
+function aws_get_private_fqdn {
+  aws ec2 describe-instances --output=text --region=$TARGET_REGION --filters Name=tag:Terraform,Values=true --filters Name=tag:Name,Values=$ENV_PREFIX-instance --query "Reservations[].Instances[].PrivateDnsName"
+}
+
+function aws_get_private_ips {
+  aws ec2 describe-instances --output=text --region=$TARGET_REGION --filters Name=tag:Terraform,Values=true --filters Name=tag:Name,Values=$ENV_PREFIX-instance --query "Reservations[].Instances[].PrivateIpAddress"
+}
+
+FQDN=$(aws_get_private_fqdn)
+PRIVATE_IPS=$(aws_get_private_ips)
+
+for ip in $PRIVATE_IPS; do
+  private_ip_array+=("$ip:5000,")
+done
+
+CORE_MEMBERS=$(echo $${private_ip_array[@]} | sed 's/,$//' | sed 's/ //g')
+
+## 2 - Install Neo4j using yum
+echo " - [ Installing Graph Database ] - "
+export NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
+
+PACKAGE_VERSION=$(curl --fail http://versions.neo4j-templates.com/target.json | jq -r ".aws[\"$NEO4J_VERSION\"]" || echo "")
+if [[ ! -z $PACKAGE_VERSION && $PACKAGE_VERSION != "null" ]]; then
+  echo " - [ Found PACKAGE_VERSION from http://versions.neo4j-templates.com : PACKAGE_VERSION=$PACKAGE_VERSION ] - "
+  yum install -y neo4j-enterprise-$PACKAGE_VERSION
+  sleep 1
+else
+  echo '- [ Failed to resolve Neo4j version from http://versions.neo4j-templates.com, using PACKAGE_VERSION=latest ] - '
+  yum install -y "neo4j-enterprise"
+fi
+
+systemctl enable neo4j
+if [[ "$PACKAGE_VERSION" == "latest" ]]; then
+  PACKAGE_VERSION=$(/usr/share/neo4j/bin/neo4j --version)
+fi
+
+## 3 - Extension Config
+echo " - [ Configuring extensions and security in neo4j.conf ] - "
+sed -i s/#dbms.security.procedures.unrestricted=my.extensions.example,my.procedures.*/dbms.security.procedures.unrestricted=apoc.*/g /etc/neo4j/neo4j.conf
+echo "dbms.security.http_auth_allowlist=/,/browser.*" >>/etc/neo4j/neo4j.conf
+echo "dbms.security.procedures.allowlist=apoc.*" >>/etc/neo4j/neo4j.conf
+
+## 4 - Neo4j Main Configuration
+echo " - [ Neo4j Main (Network & Cluster Configuration ] - "
+THIS_PRIVATE_IP="$(hostname -i | awk '{print $NF}')"
+sed -i s/#server.default_listen_address=0.0.0.0/server.default_listen_address=0.0.0.0/g /etc/neo4j/neo4j.conf
+sed -i s/#server.default_advertised_address=localhost/server.default_advertised_address="$FQDN"/g /etc/neo4j/neo4j.conf
+sed -i s/#server.discovery.advertised_address=:5000/server.discovery.advertised_address="$THIS_PRIVATE_IP":5000/g /etc/neo4j/neo4j.conf
+sed -i s/#server.cluster.advertised_address=:6000/server.cluster.advertised_address="$THIS_PRIVATE_IP":6000/g /etc/neo4j/neo4j.conf
+sed -i s/#server.cluster.raft.advertised_address=:7000/server.cluster.raft.advertised_address="$THIS_PRIVATE_IP":7000/g /etc/neo4j/neo4j.conf
+sed -i s/#server.routing.advertised_address=:7688/server.routing.advertised_address="$THIS_PRIVATE_IP":7688/g /etc/neo4j/neo4j.conf
+sed -i s/#server.discovery.listen_address=:5000/server.discovery.listen_address="$THIS_PRIVATE_IP":5000/g /etc/neo4j/neo4j.conf
+sed -i s/#server.routing.listen_address=0.0.0.0:7688/server.routing.listen_address="$THIS_PRIVATE_IP":7688/g /etc/neo4j/neo4j.conf
+sed -i s/#server.cluster.listen_address=:6000/server.cluster.listen_address="$THIS_PRIVATE_IP":6000/g /etc/neo4j/neo4j.conf
+sed -i s/#server.cluster.raft.listen_address=:7000/server.cluster.raft.listen_address="$THIS_PRIVATE_IP":7000/g /etc/neo4j/neo4j.conf
+sed -i s/#server.bolt.listen_address=:7687/server.bolt.listen_address="$THIS_PRIVATE_IP":7687/g /etc/neo4j/neo4j.conf
+sed -i s/#server.bolt.advertised_address=:7687/server.bolt.advertised_address="$THIS_PRIVATE_IP":7687/g /etc/neo4j/neo4j.conf
+
+neo4j-admin server memory-recommendation >>/etc/neo4j/neo4j.conf
+
+echo "server.metrics.enabled=true" >>/etc/neo4j/neo4j.conf
+echo "server.metrics.jmx.enabled=true" >>/etc/neo4j/neo4j.conf
+echo "server.metrics.prefix=neo4j" >>/etc/neo4j/neo4j.conf
+echo "server.metrics.filter=*" >>/etc/neo4j/neo4j.conf
+echo "server.metrics.csv.interval=5s" >>/etc/neo4j/neo4j.conf
+echo "dbms.routing.default_router=SERVER" >>/etc/neo4j/neo4j.conf
+echo "db.logs.query.enabled=INFO" >>/etc/neo4j/neo4j.conf
+echo "db.logs.query.threshold=2s" >>/etc/neo4j/neo4j.conf
+echo "server.metrics.prometheus.enabled=true" >>/etc/neo4j/neo4j.conf
+echo "server.metrics.prometheus.endpoint=localhost:2004" >>/etc/neo4j/neo4j.conf
+
+## Install UUID and setup indexes and constraints
+echo " - [ Configuring APOC and indexes/constraints ] - "
+wget https://github.com/neo4j/apoc/releases/download/$APOC_VERSION/apoc-$APOC_VERSION-core.jar -P /var/lib/neo4j/plugins
+wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/$APOC_VERSION/apoc-$APOC_VERSION-extended.jar -P /var/lib/neo4j/plugins
+chown neo4j:neo4j /var/lib/neo4j/plugins/apoc-$APOC_VERSION-extended.jar
+chmod 755 /var/lib/neo4j/plugins/apoc-$APOC_VERSION-extended.jar
+touch /etc/neo4j/apoc.conf
+chown neo4j:neo4j /etc/neo4j/apoc.conf
+echo 'apoc.uuid.enabled=true' >>/etc/neo4j/apoc.conf
+echo 'apoc.uuid.refresh=10' >>/etc/neo4j/apoc.conf
+echo 'apoc.import.file.use_neo4j_config=true' >>/etc/neo4j/apoc.conf
+echo 'apoc.import.file.enabled=true' >>/etc/neo4j/apoc.conf
+echo 'apoc.export.file.enabled=true' >>/etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.0=CREATE CONSTRAINT asset_identifier IF NOT EXISTS FOR (n:Asset) REQUIRE n.identifier IS UNIQUE' >>/etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.1=CREATE CONSTRAINT policy_entity_identifier IF NOT EXISTS FOR (n:PolicyEntity) REQUIRE n.identifier IS UNIQUE' >>/etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.2=CREATE CONSTRAINT result_entity_identifier IF NOT EXISTS FOR (n:ResultEntity) REQUIRE n.identifier IS UNIQUE' >>/etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.3=CREATE CONSTRAINT attribute_identifier IF NOT EXISTS FOR (a:Attribute) REQUIRE a.identifier IS UNIQUE' >>/etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.4=CALL apoc.uuid.install("Asset", {uuidProperty: "identifier", addToExistingNodes: false})' >>/etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.5=CALL apoc.uuid.install("PolicyEntity", {uuidProperty: "identifier", addToExistingNodes: false})' >>/etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.6=CALL apoc.uuid.install("ResultEntity", {uuidProperty: "identifier", addToExistingNodes: false})' >>/etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.7=CALL apoc.uuid.install("Attribute", {uuidProperty: "identifier", addToExistingNodes: false})' >>/etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.8=CREATE FULLTEXT INDEX search_index IF NOT EXISTS FOR (n:Asset|PolicyEntity) ON EACH [n.idFromProvider, n.name, n.slug, n.internalName] OPTIONS {indexConfig: {`fulltext.eventually_consistent`: true}}' >>/etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.9=CREATE INDEX iamPermission_name IF NOT EXISTS FOR (n:IAMPermission) ON (n.name)' >>/etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.10=CREATE INDEX asset_idFromProvider IF NOT EXISTS FOR (n:Asset) ON (n.idFromProvider)' >>/etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.11=CREATE INDEX control_slug IF NOT EXISTS FOR (c:Control) ON c.slug' >>/etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.12=CREATE INDEX procedure_slug IF NOT EXISTS FOR (pr:Procedure) ON pr.slug' >>/etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.13=CREATE INDEX awsAsset_package IF NOT EXISTS FOR (n:AWSAsset) ON (n.awsPackage)' >>/etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.14=CREATE INDEX awsAsset_assetType IF NOT EXISTS FOR (n:AWSAsset) ON (n.awsAssetType)' >>/etc/neo4j/apoc.conf
+
+sed -i s/level=\"INFO\"/level=\"ERROR\"/g /etc/neo4j/user-logs.xml
+
+## 7 - Start Neo4j
+echo " - [ Starting Neo4j ] - "
+service neo4j start
+neo4j-admin dbms set-initial-password "$NEO4J_PASSWORD"
