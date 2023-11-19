@@ -1,10 +1,15 @@
 #!/bin/bash -xe
 sleep 30
 
+# Upgrade to the latest Amazon Linux 2023
+dnf upgrade -y --releasever=2023.2.20231113
+update-motd
+
+# Forward all logs to the console
 exec > >(tee /var/log/user-data.log | logger -t user-data-extra -s 2>/dev/console) 2>&1
 
 # Configure Cloudwatch agent
-wget https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
+wget -q https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
 rpm -U ./amazon-cloudwatch-agent.rpm
 
 # Setup the prometheus scraping for neo4j
@@ -97,8 +102,8 @@ echo "server.metrics.prometheus.endpoint=localhost:2004" >>/etc/neo4j/neo4j.conf
 
 ## Install UUID and setup indexes and constraints
 echo " - [ Configuring APOC and indexes/constraints ] - "
-wget https://github.com/neo4j/apoc/releases/download/$APOC_VERSION/apoc-$APOC_VERSION-core.jar -P /var/lib/neo4j/plugins
-wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/$APOC_VERSION/apoc-$APOC_VERSION-extended.jar -P /var/lib/neo4j/plugins
+wget -q https://github.com/neo4j/apoc/releases/download/$APOC_VERSION/apoc-$APOC_VERSION-core.jar -P /var/lib/neo4j/plugins
+wget -q https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/$APOC_VERSION/apoc-$APOC_VERSION-extended.jar -P /var/lib/neo4j/plugins
 chown neo4j:neo4j /var/lib/neo4j/plugins/apoc-$APOC_VERSION-extended.jar
 chmod 755 /var/lib/neo4j/plugins/apoc-$APOC_VERSION-extended.jar
 touch /etc/neo4j/apoc.conf
@@ -124,6 +129,7 @@ echo 'apoc.initializer.neo4j.12=CREATE INDEX procedure_slug IF NOT EXISTS FOR (p
 echo 'apoc.initializer.neo4j.13=CREATE INDEX awsAsset_package IF NOT EXISTS FOR (n:AWSAsset) ON (n.awsPackage)' >>/etc/neo4j/apoc.conf
 echo 'apoc.initializer.neo4j.14=CREATE INDEX awsAsset_assetType IF NOT EXISTS FOR (n:AWSAsset) ON (n.awsAssetType)' >>/etc/neo4j/apoc.conf
 
+# Log only ERRORs until https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/3840 is fixed
 sed -i s/level=\"INFO\"/level=\"ERROR\"/g /etc/neo4j/user-logs.xml
 
 ## 7 - Start Neo4j
