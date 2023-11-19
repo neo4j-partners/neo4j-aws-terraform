@@ -8,9 +8,9 @@ variable "subnet" {
   type        = string
 }
 
-variable "source_sg" {
-  description = "The source security group ID traffic should be allowed from"
-  type        = string
+variable "source_security_groups" {
+  description = "The source security group IDs traffic should be allowed from"
+  type        = list(string)
 }
 
 variable "env_prefix" {

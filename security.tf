@@ -7,7 +7,7 @@ resource "aws_security_group" "neo4j_sg" {
     from_port       = 7474
     to_port         = 7474
     protocol        = "TCP"
-    security_groups = [var.source_sg]
+    security_groups = var.source_security_groups
   }
 
   // allow neo4j bolt traffic
@@ -15,7 +15,7 @@ resource "aws_security_group" "neo4j_sg" {
     from_port       = 7687
     to_port         = 7687
     protocol        = "TCP"
-    security_groups = [var.source_sg]
+    security_groups = var.source_security_groups
   }
 
   // outbound internet access
