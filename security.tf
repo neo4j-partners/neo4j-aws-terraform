@@ -1,5 +1,5 @@
 resource "aws_security_group" "neo4j_sg" {
-  name   = "${var.env_prefix}-sg"
+  name   = "${var.prefix}-sg"
   vpc_id = var.vpc_id
 
   // allow neo4j browser traffic
@@ -27,7 +27,7 @@ resource "aws_security_group" "neo4j_sg" {
   }
 
   tags = {
-    "Name"      = "${var.env_prefix}-sg"
+    "Name"      = "${var.prefix}-sg"
     "Terraform" = true
   }
 

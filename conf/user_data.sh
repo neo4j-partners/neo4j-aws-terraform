@@ -21,20 +21,20 @@ aws ssm get-parameter --name ${ssm_prometheus} --output=text --query "Parameter.
   -m ec2 \
   -c ssm:${ssm_cloudwatch_config} -s
 
-## 1 - Variable Setting and Test
+# 1 - Variable Setting and Test
 NEO4J_PASSWORD=${neo4j_password}
 NEO4J_VERSION=${neo4j_version}
 TARGET_REGION=${target_region}
 THIS_INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
-ENV_PREFIX=${env_prefix}
+PREFIX=${prefix}
 APOC_VERSION="5.13.0"
 
 function aws_get_private_fqdn {
-  aws ec2 describe-instances --output=text --region=$TARGET_REGION --filters Name=tag:Terraform,Values=true --filters Name=tag:Name,Values=$ENV_PREFIX-instance --query "Reservations[].Instances[].PrivateDnsName"
+  aws ec2 describe-instances --output=text --region=$TARGET_REGION --filters Name=tag:Terraform,Values=true --filters Name=tag:Name,Values=$PREFIX-instance --query "Reservations[].Instances[].PrivateDnsName"
 }
 
 function aws_get_private_ips {
-  aws ec2 describe-instances --output=text --region=$TARGET_REGION --filters Name=tag:Terraform,Values=true --filters Name=tag:Name,Values=$ENV_PREFIX-instance --query "Reservations[].Instances[].PrivateIpAddress"
+  aws ec2 describe-instances --output=text --region=$TARGET_REGION --filters Name=tag:Terraform,Values=true --filters Name=tag:Name,Values=$PREFIX-instance --query "Reservations[].Instances[].PrivateIpAddress"
 }
 
 FQDN=$(aws_get_private_fqdn)
@@ -46,7 +46,7 @@ done
 
 CORE_MEMBERS=$(echo $${private_ip_array[@]} | sed 's/,$//' | sed 's/ //g')
 
-## 2 - Install Neo4j using yum
+# 2 - Install Neo4j using yum
 echo " - [ Installing Graph Database ] - "
 export NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
 
@@ -65,13 +65,13 @@ if [[ "$PACKAGE_VERSION" == "latest" ]]; then
   PACKAGE_VERSION=$(/usr/share/neo4j/bin/neo4j --version)
 fi
 
-## 3 - Extension Config
+# 3 - Extension Config
 echo " - [ Configuring extensions and security in neo4j.conf ] - "
 sed -i s/#dbms.security.procedures.unrestricted=my.extensions.example,my.procedures.*/dbms.security.procedures.unrestricted=apoc.*/g /etc/neo4j/neo4j.conf
 echo "dbms.security.http_auth_allowlist=/,/browser.*" >>/etc/neo4j/neo4j.conf
 echo "dbms.security.procedures.allowlist=apoc.*" >>/etc/neo4j/neo4j.conf
 
-## 4 - Neo4j Main Configuration
+# 4 - Neo4j Main Configuration
 echo " - [ Neo4j Main (Network & Cluster Configuration ] - "
 THIS_PRIVATE_IP="$(hostname -i | awk '{print $NF}')"
 sed -i s/#server.default_listen_address=0.0.0.0/server.default_listen_address=0.0.0.0/g /etc/neo4j/neo4j.conf
@@ -100,7 +100,7 @@ echo "db.logs.query.threshold=2s" >>/etc/neo4j/neo4j.conf
 echo "server.metrics.prometheus.enabled=true" >>/etc/neo4j/neo4j.conf
 echo "server.metrics.prometheus.endpoint=localhost:2004" >>/etc/neo4j/neo4j.conf
 
-## Install UUID and setup indexes and constraints
+# Install UUID and setup indexes and constraints
 echo " - [ Configuring APOC and indexes/constraints ] - "
 wget -q https://github.com/neo4j/apoc/releases/download/$APOC_VERSION/apoc-$APOC_VERSION-core.jar -P /var/lib/neo4j/plugins
 wget -q https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/$APOC_VERSION/apoc-$APOC_VERSION-extended.jar -P /var/lib/neo4j/plugins
@@ -132,7 +132,7 @@ echo 'apoc.initializer.neo4j.14=CREATE INDEX awsAsset_assetType IF NOT EXISTS FO
 # Log only ERRORs until https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/3840 is fixed
 sed -i s/level=\"INFO\"/level=\"ERROR\"/g /etc/neo4j/user-logs.xml
 
-## 7 - Start Neo4j
+# 7 - Start Neo4j
 echo " - [ Starting Neo4j ] - "
 service neo4j start
 neo4j-admin dbms set-initial-password "$NEO4J_PASSWORD"

@@ -2,7 +2,7 @@ module "neo4j" {
   source = "../"
 
   ami                    = "ami-012161ead0c35965d"
-  env_prefix             = "test"
+  prefix                 = "test"
   vpc_id                 = "vpc-073f70dc070e3af8a"
   subnet                 = "subnet-017b5c86dcfd44a4f"
   password_secret_name   = "neo4j-password-test"

@@ -13,7 +13,7 @@ variable "source_security_groups" {
   type        = list(string)
 }
 
-variable "env_prefix" {
+variable "prefix" {
   description = "A prefix which is useful for tagging and naming"
   type        = string
 }

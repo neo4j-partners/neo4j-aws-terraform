@@ -39,12 +39,12 @@ resource "aws_iam_policy" "cw_retention" {
 }
 
 resource "aws_iam_role" "neo4j_ec2_role" {
-  name               = "${var.env_prefix}-role"
+  name               = "${var.prefix}-role"
   assume_role_policy = local.assume_role_policy
 }
 
 resource "aws_iam_instance_profile" "neo4j_instance_profile" {
-  name = "${var.env_prefix}-profile"
+  name = "${var.prefix}-profile"
   role = aws_iam_role.neo4j_ec2_role.name
 }
 

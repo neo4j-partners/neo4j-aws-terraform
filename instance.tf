@@ -14,7 +14,7 @@ locals {
       node_count            = 1
       neo4j_version         = "5"
       target_region         = var.target_region
-      env_prefix            = var.env_prefix
+      prefix                = var.prefix
     }
   )
 }
@@ -48,7 +48,7 @@ resource "aws_instance" "neo4j_instance" {
   }
 
   tags = {
-    "Name"      = "${var.env_prefix}-instance"
+    "Name"      = "${var.prefix}-instance"
     "Terraform" = true
   }
 
