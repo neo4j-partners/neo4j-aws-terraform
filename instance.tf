@@ -33,6 +33,8 @@ resource "aws_ssm_parameter" "prometheus" {
   value       = file("${path.module}/conf/prometheus.yml")
 }
 
+data "aws_default_tags" "this" {}
+
 resource "aws_instance" "neo4j_instance" {
   ami                    = var.ami
   instance_type          = var.instance_type
@@ -48,9 +50,11 @@ resource "aws_instance" "neo4j_instance" {
   }
 
   tags = {
-    "Name"      = "${var.prefix}-instance"
-    "Terraform" = true
+    Name      = "${var.prefix}-instance"
+    Terraform = true
   }
+
+  volume_tags = data.aws_default_tags.this.tags
 
   // only set to true when developing/debugging.
   user_data_replace_on_change = false
