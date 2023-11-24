@@ -9,8 +9,10 @@ update-motd
 exec > >(tee /var/log/user-data.log | logger -t user-data-extra -s 2>/dev/console) 2>&1
 
 # Configure Cloudwatch agent
+pushd /tmp
 wget -q https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
 rpm -U ./amazon-cloudwatch-agent.rpm
+popd
 
 # Setup the prometheus scraping for neo4j
 aws ssm get-parameter --name ${ssm_prometheus} --output=text --query "Parameter.Value" >/opt/aws/amazon-cloudwatch-agent/etc/prometheus.yml
@@ -28,6 +30,8 @@ TARGET_REGION=${target_region}
 THIS_INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
 PREFIX=${prefix}
 APOC_VERSION="5.13.0"
+BACKUP_DIR="/home/ec2-user/backups"
+BACKUP_BUCKET=${backup_bucket}
 
 function aws_get_private_fqdn {
   aws ec2 describe-instances --output=text --region=$TARGET_REGION --filters Name=tag:Terraform,Values=true --filters Name=tag:Name,Values=$PREFIX-instance --query "Reservations[].Instances[].PrivateDnsName"
@@ -38,13 +42,6 @@ function aws_get_private_ips {
 }
 
 FQDN=$(aws_get_private_fqdn)
-PRIVATE_IPS=$(aws_get_private_ips)
-
-for ip in $PRIVATE_IPS; do
-  private_ip_array+=("$ip:5000,")
-done
-
-CORE_MEMBERS=$(echo $${private_ip_array[@]} | sed 's/,$//' | sed 's/ //g')
 
 # 2 - Install Neo4j using yum
 echo " - [ Installing Graph Database ] - "
@@ -136,3 +133,18 @@ sed -i s/level=\"INFO\"/level=\"ERROR\"/g /etc/neo4j/user-logs.xml
 echo " - [ Starting Neo4j ] - "
 service neo4j start
 neo4j-admin dbms set-initial-password "$NEO4J_PASSWORD"
+
+# Setup neo4j-admin (online) backups
+yum install cronie -y
+systemctl enable crond.service
+systemctl start crond.service
+pushd /home/ec2-user
+mkdir $BACKUP_DIR
+touch backup.sh
+echo '#!/bin/bash -xe' >>backup.sh
+echo "neo4j-admin database backup --to-path=$BACKUP_DIR --type=full neo4j" >>backup.sh
+echo "aws s3 cp --recursive $BACKUP_DIR/ s3://$BACKUP_BUCKET/neo4j" >>backup.sh
+echo "rm $BACKUP_DIR/*" >>backup.sh
+chmod +x backup.sh
+echo "00 22 * * * /home/ec2-user/backup.sh" | crontab -
+popd

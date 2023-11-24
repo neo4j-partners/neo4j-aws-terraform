@@ -45,3 +45,8 @@ variable "volume_size" {
   type    = number
   default = 32
 }
+
+variable "backup_bucket" {
+  type        = string
+  description = "The name of the bucket in which to store the neo4j backups"
+}

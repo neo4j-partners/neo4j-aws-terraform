@@ -17,6 +17,7 @@ locals {
     "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy",
     "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess",
     aws_iam_policy.cw_retention.arn,
+    aws_iam_policy.s3_backup.arn,
   ]
 }
 
@@ -33,6 +34,25 @@ resource "aws_iam_policy" "cw_retention" {
         ]
         Effect   = "Allow"
         Resource = "*"
+      },
+    ]
+  })
+}
+
+resource "aws_iam_policy" "s3_backup" {
+  name        = "CyscaleS3Backup"
+  description = "Allow managing of backups on S3"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "s3:PutObject",
+          "s3:GetObject",
+        ]
+        Effect   = "Allow"
+        Resource = "arn:aws:s3:::${var.backup_bucket}/*"
       },
     ]
   })

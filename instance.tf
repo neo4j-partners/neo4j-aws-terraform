@@ -11,10 +11,10 @@ locals {
       ssm_cloudwatch_config = aws_ssm_parameter.cw_agent.name
       ssm_prometheus        = aws_ssm_parameter.prometheus.name
       neo4j_password        = module.neo4j_password.secret_string
-      node_count            = 1
       neo4j_version         = "5"
       target_region         = var.target_region
       prefix                = var.prefix
+      backup_bucket         = var.backup_bucket
     }
   )
 }

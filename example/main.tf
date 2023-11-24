@@ -9,4 +9,5 @@ module "neo4j" {
   volume_size            = 32
   target_region          = "eu-west-1"
   source_security_groups = ["sg-0d241eccdda62f95d"]
+  backup_bucket          = "cyscale-backups"
 }
