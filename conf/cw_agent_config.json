@@ -10,10 +10,10 @@
         "ignore_file_system_types": ["sysfs", "devtmpfs"]
       },
       "mem": {
-        "measurement": ["mem_available_percent"]
+        "measurement": ["mem_used_percent"]
       }
     },
-    "aggregation_dimensions": [["InstanceId", "InstanceType"], ["InstanceId"]]
+    "aggregation_dimensions": [["InstanceId"]]
   },
   "logs": {
     "logs_collected": {
