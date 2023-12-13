@@ -49,6 +49,7 @@ export NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
 
 PACKAGE_VERSION=$(curl --fail http://versions.neo4j-templates.com/target.json | jq -r ".aws[\"$NEO4J_VERSION\"]" || echo "")
 if [[ ! -z $PACKAGE_VERSION && $PACKAGE_VERSION != "null" ]]; then
+  APOC_VERSION="$PACKAGE_VERSION"
   echo " - [ Found PACKAGE_VERSION from http://versions.neo4j-templates.com : PACKAGE_VERSION=$PACKAGE_VERSION ] - "
   yum install -y neo4j-enterprise-$PACKAGE_VERSION
   sleep 1
