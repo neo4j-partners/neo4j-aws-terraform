@@ -25,11 +25,11 @@ aws ssm get-parameter --name ${ssm_prometheus} --output=text --query "Parameter.
 
 # 1 - Variable Setting and Test
 NEO4J_PASSWORD=${neo4j_password}
-NEO4J_VERSION=${neo4j_version}
+NEO4J_MAJOR=${neo4j_major_version}
 TARGET_REGION=${target_region}
 THIS_INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
 PREFIX=${prefix}
-APOC_VERSION="5.13.0"
+APOC_VERSION="" # This will be set based on the Neo4j version
 BACKUP_DIR="/home/ec2-user/backups"
 BACKUP_BUCKET=${backup_bucket}
 
@@ -47,9 +47,8 @@ FQDN=$(aws_get_private_fqdn)
 echo " - [ Installing Graph Database ] - "
 export NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
 
-PACKAGE_VERSION=$(curl --fail http://versions.neo4j-templates.com/target.json | jq -r ".aws[\"$NEO4J_VERSION\"]" || echo "")
+PACKAGE_VERSION=$(curl --fail http://versions.neo4j-templates.com/target.json | jq -r ".aws[\"$NEO4J_MAJOR\"]" || echo "")
 if [[ ! -z $PACKAGE_VERSION && $PACKAGE_VERSION != "null" ]]; then
-  APOC_VERSION="$PACKAGE_VERSION"
   echo " - [ Found PACKAGE_VERSION from http://versions.neo4j-templates.com : PACKAGE_VERSION=$PACKAGE_VERSION ] - "
   yum install -y neo4j-enterprise-$PACKAGE_VERSION
   sleep 1
@@ -62,6 +61,8 @@ systemctl enable neo4j
 if [[ "$PACKAGE_VERSION" == "latest" ]]; then
   PACKAGE_VERSION=$(/usr/share/neo4j/bin/neo4j --version)
 fi
+
+APOC_VERSION="$PACKAGE_VERSION"
 
 # 3 - Extension Config
 echo " - [ Configuring extensions and security in neo4j.conf ] - "
