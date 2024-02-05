@@ -120,13 +120,20 @@ echo 'apoc.initializer.neo4j.4=CALL apoc.uuid.install("Asset", {uuidProperty: "i
 echo 'apoc.initializer.neo4j.5=CALL apoc.uuid.install("PolicyEntity", {uuidProperty: "identifier", addToExistingNodes: false})' >>/etc/neo4j/apoc.conf
 echo 'apoc.initializer.neo4j.6=CALL apoc.uuid.install("ResultEntity", {uuidProperty: "identifier", addToExistingNodes: false})' >>/etc/neo4j/apoc.conf
 echo 'apoc.initializer.neo4j.7=CALL apoc.uuid.install("Attribute", {uuidProperty: "identifier", addToExistingNodes: false})' >>/etc/neo4j/apoc.conf
-echo 'apoc.initializer.neo4j.8=CREATE FULLTEXT INDEX search_index IF NOT EXISTS FOR (n:Asset|PolicyEntity) ON EACH [n.idFromProvider, n.name, n.slug, n.internalName] OPTIONS {indexConfig: {`fulltext.eventually_consistent`: true}}' >>/etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.8=CREATE FULLTEXT INDEX search_index IF NOT EXISTS FOR (n:Asset|PolicyEntity|Vulnerability|VulnerablePackage) ON EACH [n.idFromProvider, n.name, n.slug, n.internalName, n.vulnID] OPTIONS {indexConfig: {`fulltext.eventually_consistent`: true}}' >>/etc/neo4j/apoc.conf
 echo 'apoc.initializer.neo4j.9=CREATE INDEX iamPermission_name IF NOT EXISTS FOR (n:IAMPermission) ON (n.name)' >>/etc/neo4j/apoc.conf
 echo 'apoc.initializer.neo4j.10=CREATE INDEX asset_idFromProvider IF NOT EXISTS FOR (n:Asset) ON (n.idFromProvider)' >>/etc/neo4j/apoc.conf
 echo 'apoc.initializer.neo4j.11=CREATE INDEX control_slug IF NOT EXISTS FOR (c:Control) ON c.slug' >>/etc/neo4j/apoc.conf
 echo 'apoc.initializer.neo4j.12=CREATE INDEX procedure_slug IF NOT EXISTS FOR (pr:Procedure) ON pr.slug' >>/etc/neo4j/apoc.conf
 echo 'apoc.initializer.neo4j.13=CREATE INDEX awsAsset_package IF NOT EXISTS FOR (n:AWSAsset) ON (n.awsPackage)' >>/etc/neo4j/apoc.conf
 echo 'apoc.initializer.neo4j.14=CREATE INDEX awsAsset_assetType IF NOT EXISTS FOR (n:AWSAsset) ON (n.awsAssetType)' >>/etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.15=CREATE INDEX asset_composite IF NOT EXISTS FOR (n:Asset) ON (n.idFromProvider, n.cloudAccountID, n.accountID)' >>/etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.16=CREATE INDEX finding_idFromProvider IF NOT EXISTS FOR (n:Finding) ON (n.idFromProvider)' >>/etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.17=CREATE CONSTRAINT person_id IF NOT EXISTS FOR (a:Person) REQUIRE a.personID IS UNIQUE' >>/etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.18=CREATE INDEX tagKeyValue IF NOT EXISTS FOR (n:Tag) ON (n.key, n.value)' >>/etc/neo4j/apoc.conf
+# The following indexes should be automatically created by Neo4j
+echo 'apoc.initializer.neo4j.19=CREATE LOOKUP INDEX IF NOT EXISTS FOR ()-[r]-() ON EACH type(r)' >>/etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.20=CREATE LOOKUP INDEX IF NOT EXISTS FOR (n) ON EACH labels(n)' >>/etc/neo4j/apoc.conf
 
 # Log only ERRORs until https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/3840 is fixed
 sed -i s/level=\"INFO\"/level=\"ERROR\"/g /etc/neo4j/user-logs.xml
