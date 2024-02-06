@@ -131,6 +131,8 @@ echo 'apoc.initializer.neo4j.15=CREATE INDEX asset_composite IF NOT EXISTS FOR (
 echo 'apoc.initializer.neo4j.16=CREATE INDEX finding_idFromProvider IF NOT EXISTS FOR (n:Finding) ON (n.idFromProvider)' >>/etc/neo4j/apoc.conf
 echo 'apoc.initializer.neo4j.17=CREATE CONSTRAINT person_id IF NOT EXISTS FOR (a:Person) REQUIRE a.personID IS UNIQUE' >>/etc/neo4j/apoc.conf
 echo 'apoc.initializer.neo4j.18=CREATE INDEX tagKeyValue IF NOT EXISTS FOR (n:Tag) ON (n.key, n.value)' >>/etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.16=CREATE INDEX vulnerable_package_hash IF NOT EXISTS FOR (n:VulnerablePackage) ON (n.hash)' >>/etc/neo4j/apoc.conf
+echo 'apoc.initializer.neo4j.16=CREATE INDEX vulnerable_package_idFromProvider IF NOT EXISTS FOR (n:VulnerablePackage) ON (n.idFromProvider)' >>/etc/neo4j/apoc.conf
 # The following indexes should be automatically created by Neo4j
 echo 'apoc.initializer.neo4j.19=CREATE LOOKUP INDEX IF NOT EXISTS FOR ()-[r]-() ON EACH type(r)' >>/etc/neo4j/apoc.conf
 echo 'apoc.initializer.neo4j.20=CREATE LOOKUP INDEX IF NOT EXISTS FOR (n) ON EACH labels(n)' >>/etc/neo4j/apoc.conf
