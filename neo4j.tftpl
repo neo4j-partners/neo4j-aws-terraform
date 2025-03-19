@@ -35,7 +35,12 @@ for ip in $PRIVATE_IPS ; do
   private_ip_array+=("$ip:5000,")
 done
 
+for ip in $PRIVATE_IPS ; do
+  v2_private_ip_array+=("$ip:6000,")
+done
+
 CORE_MEMBERS=$(echo $${private_ip_array[@]} | sed 's/,$//' | sed 's/ //g')
+V2_CORE_MEMBERS=$(echo $${v2_private_ip_array[@]} | sed 's/,$//' | sed 's/ //g')
 
 function existing_version_tag {
   aws elbv2 describe-tags\
@@ -118,6 +123,8 @@ else
   sed -i s/#server.bolt.listen_address=:7687/server.bolt.listen_address="$THIS_PRIVATE_IP":7687/g /etc/neo4j/neo4j.conf
   echo "dbms.cluster.minimum_initial_system_primaries_count=$NODE_COUNT" >> /etc/neo4j/neo4j.conf
   sed -i s/#dbms.cluster.discovery.endpoints=localhost:5000,localhost:5001,localhost:5002/dbms.cluster.discovery.endpoints=$CORE_MEMBERS/g /etc/neo4j/neo4j.conf
+  sed -i s/#dbms.cluster.discovery.version=V2_ONLY/dbms.cluster.discovery.version=V2_ONLY/g /etc/neo4j/neo4j.conf
+  sed -i s/#dbms.cluster.discovery.v2.endpoints=localhost:6000,localhost:6001,localhost:6002/dbms.cluster.discovery.v2.endpoints=$V2_CORE_MEMBERS/g /etc/neo4j/neo4j.conf
 fi
 
 ## 5 - Install Graph Data Science
